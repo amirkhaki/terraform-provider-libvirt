@@ -822,14 +822,9 @@ func (r *DomainResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	if err := r.client.Libvirt().DomainUndefine(existingDomain); err != nil {
-		resp.Diagnostics.AddError(
-			"Domain Undefine Failed",
-			"Failed to undefine existing domain: "+err.Error(),
-		)
-		return
-	}
-
+	// Define the domain with the updated XML.
+	// Since the UUID is preserved, this replaces the existing domain definition.
+	// No need to undefine first - DomainDefineXML with the same UUID updates in-place.
 	newDomain, err := r.client.Libvirt().DomainDefineXML(xmlString)
 	if err != nil {
 		resp.Diagnostics.AddError(
