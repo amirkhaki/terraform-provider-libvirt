@@ -26,7 +26,19 @@ According to libvirt's API documentation:
 
 ## The Fix
 
-Simply remove the `DomainUndefine()` call. The updated code:
+Simply remove the `DomainUndefine()` call. The key insight is that:
+
+1. The Update method preserves the UUID from the existing state (line 766):
+   ```go
+   if !state.UUID.IsNull() && !state.UUID.IsUnknown() {
+       planData.SanitizedModel.UUID = state.UUID
+   }
+   ```
+
+2. When `DomainDefineXML()` is called with XML containing an existing UUID, libvirt automatically replaces that domain's definition
+3. No `DomainUndefine()` is needed - it's redundant and causes the recreation behavior
+
+The updated code:
 
 ```go
 // NEW CODE (lines 816-829)
